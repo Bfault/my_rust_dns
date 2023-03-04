@@ -1,4 +1,7 @@
-use query::QueryType;
+use std::io::Result;
+
+use crate::query::QueryType;
+use crate::packet::BytePacketBuffer;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Question {

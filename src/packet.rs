@@ -1,10 +1,12 @@
-use crate::query::Query;
-use crate::record::Record;
+use std::io::{Error, ErrorKind, Result};
 
 use crate::header::Header;
+use crate::query::QueryType;
+use crate::question::Question;
+use crate::record::Record;
 
 pub struct BytePacketBuffer {
-    buf: [u8; 512],
+    pub buf: [u8; 512],
     pub pos: usize,
 }
 
@@ -27,7 +29,7 @@ impl BytePacketBuffer {
         Ok(())
     }
 
-    pub fn seek(&mut self, pos: usize) -> Result<()> {
+    fn seek(&mut self, pos: usize) -> Result<()> {
         self.pos = pos;
 
         Ok(())
@@ -41,17 +43,17 @@ impl BytePacketBuffer {
         let byte = self.buf[self.pos];
         self.pos += 1;
 
-        OK(byte)
+        Ok(byte)
     }
 
-    pub fn get(&self) -> Result<u8> {
+    pub fn get(&self, pos: usize) -> Result<u8> {
         if self.pos >= self.buf.len() {
             return Err(Error::new(ErrorKind::UnexpectedEof, "EOF"));
         }
         
         let byte = self.buf[self.pos];
 
-        OK(byte)
+        Ok(byte)
     }
 
     pub fn get_range(&self, start: usize, len: usize) -> Result<&[u8]> {
@@ -61,7 +63,7 @@ impl BytePacketBuffer {
         
         let bytes = &self.buf[start..start+len];
 
-        OK(bytes)
+        Ok(bytes)
     }
 
     pub fn read_u16(&mut self) -> Result<u16> {
@@ -70,7 +72,7 @@ impl BytePacketBuffer {
 
         let bytes = byte1 << 8 | byte2;
 
-        OK(bytes)
+        Ok(bytes)
     }
 
     pub fn read_u32(&mut self) -> Result<u32> {
@@ -81,10 +83,10 @@ impl BytePacketBuffer {
 
         let bytes = byte1 << 24 | byte2 << 16 | byte3 << 8 | byte4;
 
-        OK(bytes)
+        Ok(bytes)
     }
 
-    pub fn read_qnmae(&self, outstr: &mut String) -> Result(()) {
+    pub fn read_qname(&mut self, outstr: &mut String) -> Result<()> {
         let mut pos = self.pos;
 
         let mut jumped = false;
@@ -130,7 +132,7 @@ impl BytePacketBuffer {
             self.seek(pos)?;
         }
 
-        OK(())
+        Ok(())
     }
 }
 
@@ -155,28 +157,28 @@ impl Packet {
     }
 
     pub fn from_buffer(buffer: &mut BytePacketBuffer) -> Result<Packet> {
-        let mut packet = Packet::new();
-        packet.header.read(buffer)?;
+        let mut result = Packet::new();
+        result.header.read(buffer)?;
 
-        for _ in 0..packet.header.questions {
-            let mut question = Question::new("".to_string(), QueryType::UNKNOWN(0));
+        for _ in 0..result.header.qdcount {
+            let mut question = Question::new("".to_string(), QueryType::UNKNOW(0));
             question.read(buffer)?;
-            packet.questions.push(question);
+            result.questions.push(question);
         }
 
-        for _ in 0..packet.header.answers {
+        for _ in 0..result.header.ancount {
             let rec = Record::read(buffer)?;
-            packet.answers.push(rec);
+            result.answers.push(rec);
         }
-        for _ in 0..packet.header.authoritative_entries {
+        for _ in 0..result.header.nscount {
             let rec = Record::read(buffer)?;
-            packet.authorities.push(rec);
+            result.authorities.push(rec);
         }
-        for _ in 0..packet.header.resource_entries {
+        for _ in 0..result.header.arcount {
             let rec = Record::read(buffer)?;
-            packet.resources.push(rec);
+            result.resources.push(rec);
         }
 
-        Ok(packet)
+        Ok(result)
     }
 }

@@ -6,11 +6,11 @@ version = 3
 name = "MyDNS"
 version = "0.1.0"
 dependencies = [
- "typenum",
+ "ux",
 ]
 
 [[package]]
-name = "typenum"
-version = "1.16.0"
+name = "ux"
+version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "497961ef93d974e23eb6f433eb5fe1b7930b659f06d12dec6fc44a8f554c0bba"
+checksum = "2cb3ff47e36907a6267572c1e398ff32ef78ac5131de8aa272e53846592c207e"

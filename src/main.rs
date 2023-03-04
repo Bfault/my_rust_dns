@@ -1,17 +1,21 @@
 use std::fs::File;
+use std::io::{Result, Read};
 
 mod packet;
 mod header;
 mod query;
+mod record;
+mod question;
+mod rescode;
 
-use packet::BytePacketBuffer;
+use packet::{BytePacketBuffer, Packet};
 
 fn main() -> Result<()> {
     let mut f = File::open("response_packet.txt")?;
     let mut buffer = BytePacketBuffer::new();
     f.read(&mut buffer.buf)?;
 
-    let packet = DnsPacket::from_buffer(&mut buffer)?;
+    let packet = Packet::from_buffer(&mut buffer)?;
     println!("{:#?}", packet.header);
 
     for q in packet.questions {

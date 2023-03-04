@@ -1,12 +1,13 @@
 use std::net::Ipv4Addr;
+use std::io::Result;
 
-use packet::BytePacketBuffer;
-use query::QueryType;
+use crate::packet::BytePacketBuffer;
+use crate::query::QueryType;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[allow(dead_code)]
 pub enum Record {
-    Unknown {
+    UNKNOW {
         domain: String,
         qtype: u16,
         data_len: u16,
@@ -49,10 +50,10 @@ impl Record {
                     ttl,
                 })
             }
-            QueryType::UNKNOWN(_) => {
+            QueryType::UNKNOW(_) => {
                 buffer.step(data_len as usize)?;
 
-                Ok(Record::UNKNOWN {
+                Ok(Record::UNKNOW {
                     domain,
                     qtype: qtype_num,
                     data_len,

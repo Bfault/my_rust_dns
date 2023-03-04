@@ -1,13 +1,13 @@
 #[derive(PartialEq, Eq, Debug, Clone, Hash, Copy)]
 pub enum QueryType {
-    Unknown(u16),
+    UNKNOW(u16),
     A,
 }
 
 impl QueryType {
     pub fn to_num(&self) -> u16 {
         match *self {
-            QueryType::Unknown(num) => num,
+            QueryType::UNKNOW(num) => num,
             QueryType::A => 1,
         }
     }
@@ -15,7 +15,7 @@ impl QueryType {
     pub fn from_num(num: u16) -> QueryType {
         match num {
             1 => QueryType::A,
-            _ => QueryType::Unknown(num),
+            _ => QueryType::UNKNOW(num),
         }
     }
 }

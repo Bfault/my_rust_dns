@@ -1,4 +1,4 @@
-use crate::typenum::U4;
+use ux::u4;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum ResultCode {
@@ -11,14 +11,14 @@ pub enum ResultCode {
 }
 
 impl ResultCode {
-    pub fn from_num(num: U4) -> ResultCode {
-        match num {
-            0 => ResultCode::NOERROR,
-            1 => ResultCode::FORMERR,
-            2 => ResultCode::SERVFAIL,
-            3 => ResultCode::NXDOMAIN,
-            4 => ResultCode::NOTIMP,
-            5 => ResultCode::REFUSED,
+    pub fn from_num(num: u4) -> ResultCode {
+        match num.into() {
+            0_u8 => ResultCode::NOERROR,
+            1_u8 => ResultCode::FORMERR,
+            2_u8 => ResultCode::SERVFAIL,
+            3_u8 => ResultCode::NXDOMAIN,
+            4_u8 => ResultCode::NOTIMP,
+            5_u8 => ResultCode::REFUSED,
             _ => panic!("Invalid ResultCode: {}", num),
         }
     }
