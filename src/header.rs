@@ -1,7 +1,5 @@
 use std::io::Result;
 
-use ux::{u4, u3};
-
 use crate::rescode::ResultCode;
 use crate::packet::BytePacketBuffer;
 
@@ -10,14 +8,14 @@ pub struct Header {
     pub id: u16,
 
     pub qr: bool,
-    pub opcode: u4,
+    pub opcode: u8,
     pub aa: bool,
     pub tc: bool,
     pub rd: bool,
 
     pub ra: bool,
-    pub z: u3,
-    pub rcode: u4,
+    pub z: u8,
+    pub rcode: ResultCode,
 
     pub qdcount: u16,
     pub ancount: u16,
@@ -31,14 +29,14 @@ impl Header {
             id: 0,
 
             qr: false,
-            opcode: u4::new(0),
+            opcode: 0,
             aa: false,
             tc: false,
             rd: false,
 
             ra: false,
-            z: u3::new(0),
-            rcode: u4::new(ResultCode::NOERROR as u8),
+            z: 0,
+            rcode: ResultCode::NOERROR,
 
             qdcount: 0,
             ancount: 0,
@@ -52,15 +50,15 @@ impl Header {
 
         let flags = buffer.read_u16()?;
 
-        self.qr = (flags & 0x8000) == 0x8000;   // 0x8000   = 1000 0000 0000 0000
-        self.opcode = u4::new(((flags & 0x7800) >> 11) as u8);   // 0x7800   = 0111 1000 0000 0000
-        self.aa = (flags & 0x400) == 0x400;     // 0x400    = 0000 0100 0000 0000
-        self.tc = (flags & 0x200) == 0x200;     // 0x200    = 0000 0010 0000 0000
-        self.rd = (flags & 0x100) == 0x100;     // 0x100    = 0000 0001 0000 0000
+        self.qr = (flags & 0x8000) == 0x8000;                                   // 0x8000   = 1000 0000 0000 0000
+        self.opcode = ((flags & 0x7800) >> 11) as u8;                           // 0x7800   = 0111 1000 0000 0000
+        self.aa = (flags & 0x400) == 0x400;                                     // 0x400    = 0000 0100 0000 0000
+        self.tc = (flags & 0x200) == 0x200;                                     // 0x200    = 0000 0010 0000 0000
+        self.rd = (flags & 0x100) == 0x100;                                     // 0x100    = 0000 0001 0000 0000
 
-        self.ra = (flags & 0x80) == 0x80;       // 0x80     = 0000 0000 1000 0000
-        self.z = u3::new(((flags & 0x70) >> 4) as u8);           // 0x70     = 0000 0000 0111 0000
-        self.rcode = u4::new((flags & 0xf) as u8);               // 0xf      = 0000 0000 0000 1111
+        self.ra = (flags & 0x80) == 0x80;                                       // 0x80     = 0000 0000 1000 0000
+        self.z = ((flags & 0x70) >> 4) as u8;                                   // 0x70     = 0000 0000 0111 0000
+        self.rcode = ResultCode::from_num((flags & 0xf) as u8);                 // 0xf      = 0000 0000 0000 1111
 
         self.qdcount = buffer.read_u16()?;
         self.ancount = buffer.read_u16()?;

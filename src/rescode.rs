@@ -1,5 +1,3 @@
-use ux::u4;
-
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum ResultCode {
     NOERROR = 0,
@@ -11,7 +9,7 @@ pub enum ResultCode {
 }
 
 impl ResultCode {
-    pub fn from_num(num: u4) -> ResultCode {
+    pub fn from_num(num: u8) -> ResultCode {
         match num.into() {
             0_u8 => ResultCode::NOERROR,
             1_u8 => ResultCode::FORMERR,

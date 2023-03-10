@@ -46,24 +46,20 @@ impl BytePacketBuffer {
         Ok(byte)
     }
 
-    pub fn get(&self, pos: usize) -> Result<u8> {
-        if self.pos >= self.buf.len() {
+    pub fn get(&mut self, pos: usize) -> Result<u8> {
+        if pos >= self.buf.len() {
             return Err(Error::new(ErrorKind::UnexpectedEof, "EOF"));
         }
         
-        let byte = self.buf[self.pos];
-
-        Ok(byte)
+        Ok(self.buf[pos])
     }
 
-    pub fn get_range(&self, start: usize, len: usize) -> Result<&[u8]> {
+    pub fn get_range(&mut self, start: usize, len: usize) -> Result<&[u8]> {
         if start + len >= self.buf.len() {
             return Err(Error::new(ErrorKind::UnexpectedEof, "EOF"));
         }
         
-        let bytes = &self.buf[start..start+len];
-
-        Ok(bytes)
+        Ok(&self.buf[start..start+len])
     }
 
     pub fn read_u16(&mut self) -> Result<u16> {
@@ -104,7 +100,7 @@ impl BytePacketBuffer {
                 if !jumped {
                     self.seek(pos + 2)?;
                 }
-
+                    
                 let b2 = self.get(pos + 1)? as u16;
                 let offset = (((len as u16) ^ 0xC0) << 8) | b2;
                 pos = offset as usize;
@@ -159,7 +155,7 @@ impl Packet {
     pub fn from_buffer(buffer: &mut BytePacketBuffer) -> Result<Packet> {
         let mut result = Packet::new();
         result.header.read(buffer)?;
-
+        
         for _ in 0..result.header.qdcount {
             let mut question = Question::new("".to_string(), QueryType::UNKNOW(0));
             question.read(buffer)?;
