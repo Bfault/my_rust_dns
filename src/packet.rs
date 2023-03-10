@@ -130,6 +130,55 @@ impl BytePacketBuffer {
 
         Ok(())
     }
+
+    fn write(&mut self, val: u8) -> Result<()> {
+        if self.pos >= self.buf.len() {
+            return Err(Error::new(ErrorKind::UnexpectedEof, "EOF"));
+        }
+        self.buf[self.pos] = val;
+        self.pos += 1;
+        Ok(())
+    }
+
+    pub fn write_u8(&mut self, val: u8) -> Result<()> {
+        self.write(val)?;
+
+        Ok(())
+    }
+
+    pub fn write_u16(&mut self, val: u16) -> Result<()> {
+        self.write((val >> 8) as u8)?;
+        self.write((val & 0xFF) as u8)?;
+
+        Ok(())
+    }
+
+    pub fn write_u32(&mut self, val: u32) -> Result<()> {
+        self.write(((val >> 24) & 0xFF) as u8)?;
+        self.write(((val >> 16) & 0xFF) as u8)?;
+        self.write(((val >> 8) & 0xFF) as u8)?;
+        self.write(((val >> 0) & 0xFF) as u8)?;
+
+        Ok(())
+    }
+
+    pub fn write_qname(&mut self, qname: &str) -> Result<()> {
+        for label in qname.split('.') {
+            let len = label.len();
+            if len > 0x3f {
+                return Err(Error::new(ErrorKind::InvalidData, "Label exceeds 63 bytes"));
+            }
+
+            self.write_u8(len as u8)?;
+            for b in label.as_bytes() {
+                self.write_u8(*b)?;
+            }
+        }
+
+        self.write_u8(0)?;
+
+        Ok(())
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -157,7 +206,7 @@ impl Packet {
         result.header.read(buffer)?;
         
         for _ in 0..result.header.qdcount {
-            let mut question = Question::new("".to_string(), QueryType::UNKNOW(0));
+            let mut question = Question::new("".to_string(), QueryType::UNKNOWN(0));
             question.read(buffer)?;
             result.questions.push(question);
         }
@@ -176,5 +225,29 @@ impl Packet {
         }
 
         Ok(result)
+    }
+
+    pub fn write(&mut self, buffer: &mut BytePacketBuffer) -> Result<()> {
+        self.header.qdcount = self.questions.len() as u16;
+        self.header.ancount = self.answers.len() as u16;
+        self.header.nscount = self.authorities.len() as u16;
+        self.header.arcount = self.resources.len() as u16;
+
+        self.header.write(buffer)?;
+
+        for question in &self.questions {
+            question.write(buffer)?;
+        }
+        for rec in &self.answers {
+            rec.write(buffer)?;
+        }
+        for rec in &self.authorities {
+            rec.write(buffer)?;
+        }
+        for rec in &self.resources {
+            rec.write(buffer)?;
+        }
+
+        Ok(())
     }
 }

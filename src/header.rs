@@ -67,4 +67,29 @@ impl Header {
 
         Ok(())
     }
+
+    pub fn write(&self, buffer: &mut BytePacketBuffer) -> Result<()> {
+        buffer.write_u16(self.id)?;
+
+        buffer.write_u8(
+            ((self.qr as u8) << 7) as u8        // x000 0000
+                | (self.opcode << 3)                // 0xxx x000
+                | ((self.aa as u8) << 2)            // 0000 0x00
+                | ((self.tc as u8) << 1)            // 0000 00x0
+                | (self.rd as u8),                  // 0000 000x
+        )?;
+
+        buffer.write_u8(
+            ((self.ra as u8) << 7)
+                | ((self.z as u8) << 6)
+                | (self.rcode as u8),
+        )?;
+
+        buffer.write_u16(self.qdcount)?;
+        buffer.write_u16(self.ancount)?;
+        buffer.write_u16(self.nscount)?;
+        buffer.write_u16(self.arcount)?;
+
+        Ok(())
+    }
 }
